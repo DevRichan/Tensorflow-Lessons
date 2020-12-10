@@ -1,0 +1,589 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "name": "Copy of l02c01_celsius_to_fahrenheit.ipynb",
+      "provenance": [],
+      "collapsed_sections": [],
+      "toc_visible": true,
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "display_name": "Python 3",
+      "name": "python3"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/DevRichan/Tensorflow-Lessons/blob/main/1.%20_of_l02c01_celsius_to_fahrenheit.ipynb%20(Concept%20Beginner)\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "HnKx50tv5aZD"
+      },
+      "source": [
+        "##### Copyright 2018 The TensorFlow Authors."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "cellView": "form",
+        "id": "IwtS_OXU5cWG"
+      },
+      "source": [
+        "#@title Licensed under the Apache License, Version 2.0 (the \"License\");\n",
+        "# you may not use this file except in compliance with the License.\n",
+        "# You may obtain a copy of the License at\n",
+        "#\n",
+        "# https://www.apache.org/licenses/LICENSE-2.0\n",
+        "#\n",
+        "# Unless required by applicable law or agreed to in writing, software\n",
+        "# distributed under the License is distributed on an \"AS IS\" BASIS,\n",
+        "# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n",
+        "# See the License for the specific language governing permissions and\n",
+        "# limitations under the License."
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "YHI3vyhv5p85"
+      },
+      "source": [
+        "# The Basics: Training Your First Model"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "_wJ2E7jV5tN5"
+      },
+      "source": [
+        "<table class=\"tfo-notebook-buttons\" align=\"left\">\n",
+        "  <td>\n",
+        "    <a target=\"_blank\" href=\"https://colab.research.google.com/github/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l02c01_celsius_to_fahrenheit.ipynb\"><img src=\"https://www.tensorflow.org/images/colab_logo_32px.png\" />Run in Google Colab</a>\n",
+        "  </td>\n",
+        "  <td>\n",
+        "    <a target=\"_blank\" href=\"https://github.com/tensorflow/examples/blob/master/courses/udacity_intro_to_tensorflow_for_deep_learning/l02c01_celsius_to_fahrenheit.ipynb\"><img src=\"https://www.tensorflow.org/images/GitHub-Mark-32px.png\" />View source on GitHub</a>\n",
+        "  </td>\n",
+        "</table>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "F8YVA_634OFk"
+      },
+      "source": [
+        "Welcome to this Colab where you will train your first Machine Learning model!\n",
+        "\n",
+        "We'll try to keep things simple here, and only introduce basic concepts. Later Colabs will cover more advanced problems.\n",
+        "\n",
+        "The problem we will solve is to convert from Celsius to Fahrenheit, where the approximate formula is:\n",
+        "\n",
+        "$$ f = c \\times 1.8 + 32 $$\n",
+        "\n",
+        "\n",
+        "Of course, it would be simple enough to create a conventional Python function that directly performs this calculation, but that wouldn't be machine learning.\n",
+        "\n",
+        "\n",
+        "Instead, we will give TensorFlow some sample Celsius values (0, 8, 15, 22, 38) and their corresponding Fahrenheit values (32, 46, 59, 72, 100).\n",
+        "Then, we will train a model that figures out the above formula through the training process."
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "fA93WUy1zzWf"
+      },
+      "source": [
+        "## Import dependencies\n",
+        "\n",
+        "First, import TensorFlow. Here, we're calling it `tf` for ease of use. We also tell it to only display errors.\n",
+        "\n",
+        "Next, import [NumPy](http://www.numpy.org/) as `np`. Numpy helps us to represent our data as highly performant lists."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "-ZMgCvSRFqxE"
+      },
+      "source": [
+        "import tensorflow as tf"
+      ],
+      "execution_count": 5,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "y_WQEM5MGmg3"
+      },
+      "source": [
+        "import numpy as np\n",
+        "import logging\n",
+        "logger = tf.get_logger()\n",
+        "logger.setLevel(logging.ERROR)"
+      ],
+      "execution_count": 6,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "AC3EQFi20buB"
+      },
+      "source": [
+        "## Set up training data\n",
+        "\n",
+        "As we saw before, supervised Machine Learning is all about figuring out an algorithm given a set of inputs and outputs. Since the task in this Codelab is to create a model that can give the temperature in Fahrenheit when given the degrees in Celsius, we create two lists `celsius_q` and `fahrenheit_a` that we can use to train our model."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "gg4pn6aI1vms",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "ecca28ff-584b-494e-e49a-813cd8bef126"
+      },
+      "source": [
+        "celsius_q    = np.array([-40, -10,  0,  8, 15, 22,  38],  dtype=float)\n",
+        "fahrenheit_a = np.array([-40,  14, 32, 46, 59, 72, 100],  dtype=float)\n",
+        "\n",
+        "for i,c in enumerate(celsius_q):\n",
+        "  print(\"{} degrees Celsius = {} degrees Fahrenheit\".format(c, fahrenheit_a[i]))"
+      ],
+      "execution_count": 7,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "-40.0 degrees Celsius = -40.0 degrees Fahrenheit\n",
+            "-10.0 degrees Celsius = 14.0 degrees Fahrenheit\n",
+            "0.0 degrees Celsius = 32.0 degrees Fahrenheit\n",
+            "8.0 degrees Celsius = 46.0 degrees Fahrenheit\n",
+            "15.0 degrees Celsius = 59.0 degrees Fahrenheit\n",
+            "22.0 degrees Celsius = 72.0 degrees Fahrenheit\n",
+            "38.0 degrees Celsius = 100.0 degrees Fahrenheit\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "wwJGmDrQ0EoB"
+      },
+      "source": [
+        "### Some Machine Learning terminology\n",
+        "\n",
+        " - **Feature** — The input(s) to our model. In this case, a single value — the degrees in Celsius.\n",
+        "\n",
+        " - **Labels** — The output our model predicts. In this case, a single value — the degrees in Fahrenheit.\n",
+        "\n",
+        " - **Example** — A pair of inputs/outputs used during training. In our case a pair of values from `celsius_q` and `fahrenheit_a` at a specific index, such as `(22,72)`.\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "VM7_9Klvq7MO"
+      },
+      "source": [
+        "## Create the model\n",
+        "\n",
+        "Next, create the model. We will use the simplest possible model we can, a Dense network. Since the problem is straightforward, this network will require only a single layer, with a single neuron.\n",
+        "\n",
+        "### Build a layer\n",
+        "\n",
+        "We'll call the layer `l0` and create it by instantiating `tf.keras.layers.Dense` with the following configuration:\n",
+        "\n",
+        "*   `input_shape=[1]` — This specifies that the input to this layer is a single value. That is, the shape is a one-dimensional array with one member. Since this is the first (and only) layer, that input shape is the input shape of the entire model. The single value is a floating point number, representing degrees Celsius.\n",
+        "\n",
+        "*   `units=1` — This specifies the number of neurons in the layer. The number of neurons defines how many internal variables the layer has to try to learn how to solve the problem (more later). Since this is the final layer, it is also the size of the model's output — a single float value representing degrees Fahrenheit. (In a multi-layered network, the size and shape of the layer would need to match the `input_shape` of the next layer.)\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "pRllo2HLfXiu"
+      },
+      "source": [
+        "l0 = tf.keras.layers.Dense(units=1, input_shape=[1])"
+      ],
+      "execution_count": 11,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "_F00_J9duLBD"
+      },
+      "source": [
+        "### Assemble layers into the model\n",
+        "\n",
+        "Once layers are defined, they need to be assembled into a model. The Sequential model definition takes a list of layers as an argument, specifying the calculation order from the input to the output.\n",
+        "\n",
+        "This model has just a single layer, l0."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "cSp-GpLSuMRq"
+      },
+      "source": [
+        "model = tf.keras.Sequential([l0])"
+      ],
+      "execution_count": 12,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "t7pfHfWxust0"
+      },
+      "source": [
+        "**Note**\n",
+        "\n",
+        "You will often see the layers defined inside the model definition, rather than beforehand:\n",
+        "\n",
+        "```python\n",
+        "model = tf.keras.Sequential([\n",
+        "  tf.keras.layers.Dense(units=1, input_shape=[1])\n",
+        "])\n",
+        "```"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "kiZG7uhm8qCF"
+      },
+      "source": [
+        "## Compile the model, with loss and optimizer functions\n",
+        "\n",
+        "Before training, the model has to be compiled. When compiled for training, the model is given:\n",
+        "\n",
+        "- **Loss function** — A way of measuring how far off predictions are from the desired outcome. (The measured difference is called the \"loss\".)\n",
+        "\n",
+        "- **Optimizer function** — A way of adjusting internal values in order to reduce the loss.\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "m8YQN1H41L-Y"
+      },
+      "source": [
+        "model.compile(loss='mean_squared_error',\n",
+        "              optimizer=tf.keras.optimizers.Adam(0.1))"
+      ],
+      "execution_count": 13,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "17M3Pqv4P52R"
+      },
+      "source": [
+        "These are used during training (`model.fit()`, below) to first calculate the loss at each point, and then improve it. In fact, the act of calculating the current loss of a model and then improving it is precisely what training is.\n",
+        "\n",
+        "During training, the optimizer function is used to calculate adjustments to the model's internal variables. The goal is to adjust the internal variables until the model (which is really a math function) mirrors the actual equation for converting Celsius to Fahrenheit.\n",
+        "\n",
+        "TensorFlow uses numerical analysis to perform this tuning, and all this complexity is hidden from you so we will not go into the details here. What is useful to know about these parameters are:\n",
+        "\n",
+        "The loss function ([mean squared error](https://en.wikipedia.org/wiki/Mean_squared_error)) and the optimizer ([Adam](https://machinelearningmastery.com/adam-optimization-algorithm-for-deep-learning/)) used here are standard for simple models like this one, but many others are available. It is not important to know how these specific functions work at this point.\n",
+        "\n",
+        "One part of the Optimizer you may need to think about when building your own models is the learning rate (`0.1` in the code above). This is the step size taken when adjusting values in the model. If the value is too small, it will take too many iterations to train the model. Too large, and accuracy goes down. Finding a good value often involves some trial and error, but the range is usually within 0.001 (default), and 0.1"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "c-Jk4dG91dvD"
+      },
+      "source": [
+        "## Train the model\n",
+        "\n",
+        "Train the model by calling the `fit` method.\n",
+        "\n",
+        "During training, the model takes in Celsius values, performs a calculation using the current internal variables (called \"weights\") and outputs values which are meant to be the Fahrenheit equivalent. Since the weights are initially set randomly, the output will not be close to the correct value. The difference between the actual output and the desired output is calculated using the loss function, and the optimizer function directs how the weights should be adjusted.\n",
+        "\n",
+        "This cycle of calculate, compare, adjust is controlled by the `fit` method. The first argument is the inputs, the second argument is the desired outputs. The `epochs` argument specifies how many times this cycle should be run, and the `verbose` argument controls how much output the method produces."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "lpRrl7WK10Pq",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "fdb5f130-de55-4748-ed3d-df103c757360"
+      },
+      "source": [
+        "history = model.fit(celsius_q, fahrenheit_a, epochs=500, verbose=False)\n",
+        "print(\"Finished training the model\")"
+      ],
+      "execution_count": 15,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Finished training the model\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "GFcIU2-SdCrI"
+      },
+      "source": [
+        "In later videos, we will go into more detail on what actually happens here and how a Dense layer actually works internally."
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "0-QsNCLD4MJZ"
+      },
+      "source": [
+        "## Display training statistics\n",
+        "\n",
+        "The `fit` method returns a history object. We can use this object to plot how the loss of our model goes down after each training epoch. A high loss means that the Fahrenheit degrees the model predicts is far from the corresponding value in `fahrenheit_a`.\n",
+        "\n",
+        "We'll use [Matplotlib](https://matplotlib.org/) to visualize this (you could use another tool). As you can see, our model improves very quickly at first, and then has a steady, slow improvement until it is very near \"perfect\" towards the end.\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "IeK6BzfbdO6_",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 300
+        },
+        "outputId": "3573356b-ff3f-4527-f626-914f5dd892b4"
+      },
+      "source": [
+        "import matplotlib.pyplot as plt\n",
+        "plt.xlabel('Epoch Number')\n",
+        "plt.ylabel(\"Loss Magnitude\")\n",
+        "plt.plot(history.history['loss'])"
+      ],
+      "execution_count": 16,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "[<matplotlib.lines.Line2D at 0x7f5a509d0cf8>]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 16
+        },
+        {
+          "output_type": "display_data",
+          "data": {
+            "image/png": "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\n",
+            "text/plain": [
+              "<Figure size 432x288 with 1 Axes>"
+            ]
+          },
+          "metadata": {
+            "tags": [],
+            "needs_background": "light"
+          }
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "LtQGDMob5LOD"
+      },
+      "source": [
+        "## Use the model to predict values\n",
+        "\n",
+        "Now you have a model that has been trained to learn the relationship between `celsius_q` and `fahrenheit_a`. You can use the predict method to have it calculate the Fahrenheit degrees for a previously unknown Celsius degrees.\n",
+        "\n",
+        "So, for example, if the Celsius value is 100, what do you think the Fahrenheit result will be? Take a guess before you run this code."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "oxNzL4lS2Gui",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "64e9ebe2-b318-4b33-8680-0a4fc6f10a6b"
+      },
+      "source": [
+        "print(model.predict([100.0]))"
+      ],
+      "execution_count": 17,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "[[211.74411]]\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "jApk6tZ1fBg1"
+      },
+      "source": [
+        "The correct answer is $100 \\times 1.8 + 32 = 212$, so our model is doing really well.\n",
+        "\n",
+        "### To review\n",
+        "\n",
+        "\n",
+        "*   We created a model with a Dense layer\n",
+        "*   We trained it with 3500 examples (7 pairs, over 500 epochs).\n",
+        "\n",
+        "Our model tuned the variables (weights) in the Dense layer until it was able to return the correct Fahrenheit value for any Celsius value. (Remember, 100 Celsius was not part of our training data.)\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "zRrOky5gm20Z"
+      },
+      "source": [
+        "## Looking at the layer weights\n",
+        "\n",
+        "Finally, let's print the internal variables of the Dense layer. "
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "kmIkVdkbnZJI",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "c5eb2427-81c7-4307-c21a-37bf2899325d"
+      },
+      "source": [
+        "print(\"These are the layer variables: {}\".format(l0.get_weights()))"
+      ],
+      "execution_count": 18,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "These are the layer variables: [array([[1.798131]], dtype=float32), array([31.93101], dtype=float32)]\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "RSplSnMvnWC-"
+      },
+      "source": [
+        "The first variable is close to ~1.8 and the second to ~32. These values (1.8 and 32) are the actual variables in the real conversion formula.\n",
+        "\n",
+        "This is really close to the values in the conversion formula. We'll explain this in an upcoming video where we show how a Dense layer works, but for a single neuron with a single input and a single output, the internal math looks the same as [the equation for a line](https://en.wikipedia.org/wiki/Linear_equation#Slope%E2%80%93intercept_form), $y = mx + b$, which has the same form as the conversion equation, $f = 1.8c + 32$.\n",
+        "\n",
+        "Since the form is the same, the variables should converge on the standard values of 1.8 and 32, which is exactly what happened.\n",
+        "\n",
+        "With additional neurons, additional inputs, and additional outputs, the formula becomes much more complex, but the idea is the same.\n",
+        "\n",
+        "### A little experiment\n",
+        "\n",
+        "Just for fun, what if we created more Dense layers with different units, which therefore also has more variables?"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Y2zTA-rDS5Xk",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "b97165f5-0d2f-454c-fcb1-2eef2f9f6abf"
+      },
+      "source": [
+        "l0 = tf.keras.layers.Dense(units=4, input_shape=[1])\n",
+        "l1 = tf.keras.layers.Dense(units=4)\n",
+        "l2 = tf.keras.layers.Dense(units=1)\n",
+        "model = tf.keras.Sequential([l0, l1, l2])\n",
+        "model.compile(loss='mean_squared_error', optimizer=tf.keras.optimizers.Adam(0.1))\n",
+        "model.fit(celsius_q, fahrenheit_a, epochs=500, verbose=False)\n",
+        "print(\"Finished training the model\")\n",
+        "print(model.predict([100.0]))\n",
+        "print(\"Model predicts that 100 degrees Celsius is: {} degrees Fahrenheit\".format(model.predict([100.0])))\n",
+        "print(\"These are the l0 variables: {}\".format(l0.get_weights()))\n",
+        "print(\"These are the l1 variables: {}\".format(l1.get_weights()))\n",
+        "print(\"These are the l2 variables: {}\".format(l2.get_weights()))"
+      ],
+      "execution_count": 19,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Finished training the model\n",
+            "[[211.74744]]\n",
+            "Model predicts that 100 degrees Celsius is: [[211.74744]] degrees Fahrenheit\n",
+            "These are the l0 variables: [array([[-0.06587996,  0.25201443, -0.03875805,  0.7026316 ]],\n",
+            "      dtype=float32), array([-2.646946 ,  3.108106 ,  2.6601734,  3.365405 ], dtype=float32)]\n",
+            "These are the l1 variables: [array([[ 0.00902897, -0.01003299,  1.3446234 ,  1.040314  ],\n",
+            "       [-0.22790281,  1.1301124 ,  0.21115404, -1.2766628 ],\n",
+            "       [-0.56343675,  0.613144  , -1.0833008 ,  0.29219207],\n",
+            "       [ 0.05470932,  1.2637168 , -0.4154503 , -0.3928985 ]],\n",
+            "      dtype=float32), array([ 2.051918 ,  3.0245018, -3.3542013, -3.3169086], dtype=float32)]\n",
+            "These are the l2 variables: [array([[ 0.4216456 ],\n",
+            "       [ 0.87492114],\n",
+            "       [-0.92853284],\n",
+            "       [-0.7765886 ]], dtype=float32), array([3.0568085], dtype=float32)]\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "xrpFFlgYhCty"
+      },
+      "source": [
+        "As you can see, this model is also able to predict the corresponding Fahrenheit value really well. But when you look at the variables (weights) in the `l0` and `l1` layers, they are nothing even close to ~1.8 and ~32. The added complexity hides the \"simple\" form of the conversion equation.\n",
+        "\n",
+        "Stay tuned for the upcoming video on how Dense layers work for the explanation."
+      ]
+    }
+  ]
+}
